@@ -1,4 +1,3 @@
-// RELÓGIO EM TEMPO REAL
 const clock = document.getElementById('clock');
 if (clock) {
   const updateClock = () => {
@@ -8,7 +7,6 @@ if (clock) {
   setInterval(updateClock, 1000);
 }
 
-// NAVEGAÇÃO VIM (hjkl)
 const vimNav = {
   items: [],
   index: 0,
@@ -107,3 +105,52 @@ if (!document.querySelector('style[data-vim-styles]')) {
   `;
   document.head.appendChild(style);
 }
+
+fetch('https://blog.pablotroli.com/index.xml')
+  .then(response => response.text())
+  .then(text => {
+    const parser = new DOMParser()
+    const xml = parser.parseFromString(text, 'application/xml')
+    const items = xml.getElementsByTagName('item')
+    const posts = Array.from(items).filter(item => {
+      const link = item.getElementsByTagName('link')[0].textContent
+      return link.includes('/posts/')
+    }).slice(0, 2)
+    console.log(posts)
+
+    function parsePost(item) {
+      const title = item.getElementsByTagName('title')[0].textContent
+      const link = item.getElementsByTagName('link')[0].textContent
+      const date = new Date(item.getElementsByTagName('pubDate')[0].textContent)
+        .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+      const description = item.getElementsByTagName('description')[0].textContent
+        .split('| ').pop()
+        .trim()
+        .split(' ').slice(1).join(' ')
+        .slice(0, 56) + '...'
+      return {
+        title: 'Post -> ' + title,
+        link: 'https://blog.pablotroli.com' + link,
+        date: date,
+        description: description
+      }
+    }
+
+    const parsedPosts = posts.map(parsePost)
+
+    const container = document.getElementById('recent-posts');
+    const postsHtml = parsedPosts.map(post => `
+  <a href="${post.link}" class="card" target="_blank" rel="noopener noreferrer">
+    <div class="card-label">${post.date}</div>
+    <div class="card-title">${post.title}</div>
+    <div class="card-desc">${post.description}</div>
+    <span class="card-arrow" aria-hidden="true">read ↗</span>
+  </a>
+`).join('');
+
+    container.insertAdjacentHTML('beforeend', postsHtml);
+
+    console.log(parsedPosts)
+  }).catch(error => console.log(error))
+
+
