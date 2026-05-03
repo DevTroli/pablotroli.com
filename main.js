@@ -1,68 +1,102 @@
-const clock = document.getElementById('clock');
+const clock = document.getElementById("clock");
 if (clock) {
   const updateClock = () => {
-    clock.textContent = new Date().toLocaleTimeString('pt-BR', { hour12: false });
+    clock.textContent = new Date().toLocaleTimeString("pt-BR", {
+      hour12: false,
+    });
   };
   updateClock();
   setInterval(updateClock, 1000);
 }
-document.addEventListener('DOMContentLoaded', () => {
-  vimNav.init();
-  fetch('https://blog.pablotroli.com/index.xml')
-    .then(response => response.text())
-    .then(text => {
-      const parser = new DOMParser()
-      const xml = parser.parseFromString(text, 'application/xml')
-      const items = xml.getElementsByTagName('item')
-      const posts = Array.from(items).filter(item => {
-        const link = item.getElementsByTagName('link')[0].textContent
-        return link.includes('/posts/')
-      }).slice(0, 2)
-      console.log(posts)
-  
-   function parsePost(item) {
-      const title = item.getElementsByTagName('title')[0].textContent
-      const link = item.getElementsByTagName('link')[0].textContent
-      const date = new Date(item.getElementsByTagName('pubDate')[0].textContent)
-        .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-      const descHtml = item.getElementsByTagName('description')[0].textContent
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = descHtml
-      const descText = tempDiv.textContent || ''
-      const withoutPrefix = descText.split('· ').slice(1).join('· ').trim()
-      const cleanDesc = withoutPrefix.replace(/^\d{2}\/\d{2}\/\d{4}\s*/, '').trim()
-      const truncatedDesc = cleanDesc.split(' ').slice(0, 12).join(' ') + (cleanDesc.split(' ').length > 12 ? '...' : '')
-      return {
-        title: 'Post -> ' + title,
-        link: 'https://blog.pablotroli.com' + link,
-        date: date,
-        description: truncatedDesc
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("https://blog.pablotroli.com/index.xml")
+    .then((response) => response.text())
+    .then((text) => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, "application/xml");
+      const items = xml.getElementsByTagName("item");
+      const posts = Array.from(items)
+        .filter((item) => {
+          const link = item.getElementsByTagName("link")[0].textContent;
+          return link.includes("/posts/");
+        })
+        .slice(0, 2);
+      console.log(posts);
+
+      function parsePost(item) {
+        const title = item.getElementsByTagName("title")[0].textContent;
+        let link = item.getElementsByTagName("link")[0].textContent;
+        const date = new Date(
+          item.getElementsByTagName("pubDate")[0].textContent,
+        ).toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        let descHtml = item.getElementsByTagName("description")[0].textContent;
+        descHtml = descHtml
+          .replace(/&amp;lt;/g, "<")
+          .replace(/&amp;gt;/g, ">")
+          .replace(/&amp;#x27;/g, "'")
+          .replace(/&amp;#x22;/g, '\"')
+          .replace(/&amp;#x2F;/g, "/")
+          .replace(/&amp;#34;/g, '\"')
+          .replace(/&amp;#xA;/g, "\n");
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = descHtml;
+        const pTag = tempDiv.querySelector("p");
+        let cleanDesc = pTag ? pTag.textContent : tempDiv.textContent;
+        cleanDesc = cleanDesc.trim();
+        const truncatedDesc =
+          cleanDesc.split(" ").slice(0, 15).join(" ") +
+          (cleanDesc.split(" ").length > 15 ? "..." : "");
+        return {
+          title: "Post -> " + title,
+          link: link.replace("trolismind.vercel.app", "blog.pablotroli.com"),
+          date: date,
+          description: truncatedDesc,
+        };
       }
-    }
-  
-      const parsedPosts = posts.map(parsePost)
-  
-      const container = document.getElementById('recent-posts');
-      const postsHtml = parsedPosts.map(post => `
+
+      const parsedPosts = posts.map(parsePost);
+
+      const container = document.getElementById("recent-posts");
+      const postsHtml = parsedPosts
+        .map(
+          (post) => `
     <a href="${post.link}" class="card" target="_blank" rel="noopener noreferrer">
       <div class="card-label">${post.date}</div>
       <div class="card-title">${post.title}</div>
       <div class="card-desc">${post.description}</div>
       <span class="card-arrow" aria-hidden="true">read ↗</span>
     </a>
-  `).join('');
-  
-      container.insertAdjacentHTML('beforeend', postsHtml);
-  
-      console.log(parsedPosts)
-    }).catch(error => console.log(error))
+  `,
+        )
+        .join("");
+
+      container.insertAdjacentHTML("beforeend", postsHtml);
+
+      console.log(parsedPosts);
+    })
+    .catch((error) => console.log(error));
 });
 
 // EASTER EGG: KONAMI CODE (↑↑↓↓←→←→BA)
-const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+const KONAMI = [
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "b",
+  "a",
+];
 let konamiProgress = 0;
 
-document.addEventListener('keydown', (event) => {
+document.addEventListener("keydown", (event) => {
   if (event.key === KONAMI[konamiProgress]) {
     konamiProgress++;
     if (konamiProgress === KONAMI.length) {
@@ -75,22 +109,22 @@ document.addEventListener('keydown', (event) => {
 });
 
 function ativarEasterEgg() {
-  const msg = document.createElement('div');
+  const msg = document.createElement("div");
   Object.assign(msg.style, {
-    position: 'fixed',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    background: '#0e110e',
-    border: '1px solid #39ff14',
-    color: '#39ff14',
-    fontFamily: 'JetBrains Mono, monospace',
-    fontSize: '13px',
-    padding: '24px 32px',
-    zIndex: '99999',
-    textAlign: 'center',
-    boxShadow: '0 0 40px #39ff1433',
-    lineHeight: '1.8',
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#0e110e",
+    border: "1px solid #39ff14",
+    color: "#39ff14",
+    fontFamily: "JetBrains Mono, monospace",
+    fontSize: "13px",
+    padding: "24px 32px",
+    zIndex: "99999",
+    textAlign: "center",
+    boxShadow: "0 0 40px #39ff1433",
+    lineHeight: "1.8",
   });
   msg.innerHTML = `
     <div style="color:#ffb700">// root@dev:~#</div>
@@ -100,27 +134,23 @@ function ativarEasterEgg() {
   document.body.appendChild(msg);
   const fechar = () => {
     msg.remove();
-    document.removeEventListener('keydown', fechar);
+    document.removeEventListener("keydown", fechar);
   };
   setTimeout(() => {
-    document.removeEventListener('keydown', fechar);
-    document.addEventListener('keydown', fechar, { once: true });
+    document.removeEventListener("keydown", fechar);
+    document.addEventListener("keydown", fechar, { once: true });
   }, 300);
 }
 
-if (!document.querySelector('style[data-vim-styles]')) {
-  const style = document.createElement('style');
-  style.setAttribute('data-vim-styles', '');
+if (!document.querySelector("style[data-vim-styles]")) {
+  const style = document.createElement("style");
+  style.setAttribute("data-vim-styles", "");
   style.textContent = `
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .vim-active { outline: 2px solid #39ff14; outline-offset: 2px; box-shadow: 0 0 15px #39ff1466 !important; }
   `;
   document.head.appendChild(style);
 }
-
-// ============================================================
-// TERMINAL INTERATIVO — abre com Ctrl+T
-// ============================================================
 
 const terminal = {
   element: null,
@@ -140,9 +170,10 @@ const terminal = {
   clear           → limpar terminal
   exit            → fechar terminal
 `,
-    whoami: () => `<span style="color:#39ff14">pablo troli</span> — dev, cinéfilo, usuário de Arch`,
+    whoami: () =>
+      `<span style="color:#39ff14">pablo troli</span> — dev, cinéfilo, usuário de Arch`,
 
-    'cat bio.txt': () => `
+    "cat bio.txt": () => `
 Desenvolvedor de Software com experiência prática em sistemas
 reais em produção, focado em automação de processos e otimização
 de operações.
@@ -180,22 +211,22 @@ drwxr-xr-x  contato/      → links e email
 -rw-r--r--  CV_PabloTroli.pdf
 `,
 
-    'sudo rm -rf /': () => `
+    "sudo rm -rf /": () => `
 <span style="color:#ff4444">[sudo] password for pablo:</span> ········
 <span style="color:#ff4444">Permission denied.</span> Boa tentativa.
 <span style="color:#4a6b4a">dica: infelizmente não existe nada pra destruir aqui ):</span>
 `,
 
-    clear: () => '__clear__',
+    clear: () => "__clear__",
 
-    exit: () => '__exit__',
+    exit: () => "__exit__",
   },
 
   init() {
-    const el = document.createElement('div')
-    el.id = 'easter-terminal'
-    el.setAttribute('role', 'dialog')
-    el.setAttribute('aria-label', 'Terminal interativo')
+    const el = document.createElement("div");
+    el.id = "easter-terminal";
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-label", "Terminal interativo");
     el.innerHTML = `
       <div id="terminal-titlebar">
         <span style="color:#4a6b4a">dev@troli:~</span>
@@ -206,29 +237,31 @@ drwxr-xr-x  contato/      → links e email
         <span style="color:#39ff14">dev@troli</span><span style="color:#4a6b4a">:</span><span style="color:#ffb700">~</span><span style="color:#4a6b4a">$</span>
         <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" autofocus />
       </div>
-    `
-    document.body.appendChild(el)
-    this.element = el
-    this.input = el.querySelector('#terminal-input')
-    this.output = el.querySelector('#terminal-output')
+    `;
+    document.body.appendChild(el);
+    this.element = el;
+    this.input = el.querySelector("#terminal-input");
+    this.output = el.querySelector("#terminal-output");
 
-    this.injectStyles()
+    this.injectStyles();
 
     this.print(`<span style="color:#ffb700">// terminal interativo</span>
 digite <span style="color:#39ff14">help</span> para ver os comandos disponíveis.
-`)
+`);
 
-    el.querySelector('#terminal-close').addEventListener('click', () => this.close())
-    this.input.addEventListener('keydown', (e) => this.handleKey(e))
-    el.addEventListener('click', () => this.input.focus())
+    el.querySelector("#terminal-close").addEventListener("click", () =>
+      this.close(),
+    );
+    this.input.addEventListener("keydown", (e) => this.handleKey(e));
+    el.addEventListener("click", () => this.input.focus());
 
-    this.input.focus()
+    this.input.focus();
   },
 
   injectStyles() {
-    if (document.querySelector('style[data-terminal]')) return
-    const style = document.createElement('style')
-    style.setAttribute('data-terminal', '')
+    if (document.querySelector("style[data-terminal]")) return;
+    const style = document.createElement("style");
+    style.setAttribute("data-terminal", "");
     style.textContent = `
       #easter-terminal {
         position: fixed;
@@ -304,96 +337,95 @@ digite <span style="color:#39ff14">help</span> para ver os comandos disponíveis
         font-size: 12px;
         caret-color: #39ff14;
       }
-    `
-    document.head.appendChild(style)
+    `;
+    document.head.appendChild(style);
   },
 
   print(text) {
-    this.output.innerHTML += text + '\n'
-    this.output.scrollTop = this.output.scrollHeight
+    this.output.innerHTML += text + "\n";
+    this.output.scrollTop = this.output.scrollHeight;
   },
 
   handleKey(e) {
-    if (e.key === 'Enter') {
-      const cmd = this.input.value.trim()
-      this.input.value = ''
+    if (e.key === "Enter") {
+      const cmd = this.input.value.trim();
+      this.input.value = "";
 
-      if (!cmd) return
+      if (!cmd) return;
 
-      this.history.unshift(cmd)
-      this.historyIndex = -1
+      this.history.unshift(cmd);
+      this.historyIndex = -1;
 
-      this.print(`<span style="color:#39ff14">pablo@troli</span><span style="color:#4a6b4a">:</span><span style="color:#ffb700">~</span><span style="color:#4a6b4a">$</span> ${cmd}`)
+      this.print(
+        `<span style="color:#39ff14">pablo@troli</span><span style="color:#4a6b4a">:</span><span style="color:#ffb700">~</span><span style="color:#4a6b4a">$</span> ${cmd}`,
+      );
 
-      this.execute(cmd)
+      this.execute(cmd);
     }
 
     // Histórico com setas
-    if (e.key === 'ArrowUp') {
-      e.preventDefault()
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
       if (this.historyIndex < this.history.length - 1) {
-        this.historyIndex++
-        this.input.value = this.history[this.historyIndex]
+        this.historyIndex++;
+        this.input.value = this.history[this.historyIndex];
       }
     }
 
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
       if (this.historyIndex > 0) {
-        this.historyIndex--
-        this.input.value = this.history[this.historyIndex]
+        this.historyIndex--;
+        this.input.value = this.history[this.historyIndex];
       } else {
-        this.historyIndex = -1
-        this.input.value = ''
+        this.historyIndex = -1;
+        this.input.value = "";
       }
     }
 
-    if (e.key === 'Escape') this.close()
+    if (e.key === "Escape") this.close();
   },
 
   execute(cmd) {
-    const fn = this.commands[cmd.toLowerCase()]
+    const fn = this.commands[cmd.toLowerCase()];
 
     if (!fn) {
-      this.print(`<span style="color:#ff4444">comando não encontrado:</span> ${cmd}
-<span style="color:#4a6b4a">tente: help</span>`)
-      return
+      this
+        .print(`<span style="color:#ff4444">comando não encontrado:</span> ${cmd}
+<span style="color:#4a6b4a">tente: help</span>`);
+      return;
     }
 
-    const result = fn()
+    const result = fn();
 
-    if (result === '__clear__') {
-      this.output.innerHTML = ''
-      return
+    if (result === "__clear__") {
+      this.output.innerHTML = "";
+      return;
     }
 
-    if (result === '__exit__') {
-      this.close()
-      return
+    if (result === "__exit__") {
+      this.close();
+      return;
     }
 
-    this.print(result)
+    this.print(result);
   },
 
   open() {
-    if (document.getElementById('easter-terminal')) return
-    this.init()
+    if (document.getElementById("easter-terminal")) return;
+    this.init();
   },
 
   close() {
-    const el = document.getElementById('easter-terminal')
-    if (el) el.remove()
+    const el = document.getElementById("easter-terminal");
+    if (el) el.remove();
+  },
+};
+
+document.addEventListener("keydown", (e) => {
+  if (e.altKey && e.key === "t") {
+    e.preventDefault(); // evita abrir nova aba no browser
+    const exists = document.getElementById("easter-terminal");
+    exists ? terminal.close() : terminal.open();
   }
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.altKey && e.key === 't') {
-    e.preventDefault() // evita abrir nova aba no browser
-    const exists = document.getElementById('easter-terminal')
-    exists ? terminal.close() : terminal.open()
-  }
-})
-
-
-
-
+});
